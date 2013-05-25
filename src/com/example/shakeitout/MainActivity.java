@@ -2,12 +2,17 @@ package com.example.shakeitout;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.res.AssetFileDescriptor;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -20,13 +25,20 @@ public class MainActivity extends Activity {
 	public final static String EXTRA_MESSAGE = "com.example.shakeitout.MESSAGE";
 	private final static int SUCCESS_CRITERION = 100;
 	private final static int LEGIT_SHAKE = 2;
-	private final static float DIFFICULTY_FACTOR = 0.8f;
+	private final static float DIFFICULTY_FACTOR = 1.0f;
+	private final static int PER25 = 25;
+	private final static int PER75 = 75;
+	private final static int PER100 = 100;
 	
+	private boolean encourage[] = new boolean[3];
+	
+	private long currentTime, currentStart;
 	private boolean gameStop = false;
 	private ProgressBar progressBar1;
-	private TextView textView1;
+	private TextView textView1, textView2;
 	private Button button1;
 	private ImageView imageView1;
+	private MediaPlayer mp;
 	
 	/* put this into your activity class */
 	private SensorManager mSensorManager;
@@ -49,8 +61,19 @@ public class MainActivity extends Activity {
 	    	if(Math.abs(mAccel) > LEGIT_SHAKE && !gameStop)
 	    		progressBar1.setProgress(progressBar1.getProgress() + Math.round(Math.abs(mAccel) * DIFFICULTY_FACTOR));
 	    	
-			if (progressBar1.getProgress() >= SUCCESS_CRITERION) {
-				progressBar1.setProgress(0);
+	    	if(!encourage[0] && progressBar1.getProgress() >= PER25) {
+	    		playSound(PER25);
+	    		encourage[0] = true;
+	    	}
+	    	
+	    	if(!encourage[1] && progressBar1.getProgress() >= PER75) {
+	    		playSound(PER75);
+	    		encourage[1] = true;
+	    	}
+	    	
+			if (!encourage[2] && progressBar1.getProgress() >= SUCCESS_CRITERION) {
+				playSound(PER100);
+				encourage[2] = true;
 				showSuccessView();
 			}
 		}
@@ -65,38 +88,90 @@ public class MainActivity extends Activity {
         progressBar1 = (ProgressBar) findViewById(R.id.progressBar1);
         button1 = (Button) findViewById(R.id.button1);
         imageView1 = (ImageView) findViewById(R.id.test_image);
+        textView2 = (TextView) findViewById(R.id.textView2);
 	}
 	
-	protected void showNewGameView() {
-		progressBar1.setProgress(0);		
+	protected void showNewGameView() {		
 		imageView1.setVisibility(View.INVISIBLE);
 		button1.setVisibility(View.INVISIBLE);
+		textView2.setText("");
+		textView2.setVisibility(View.INVISIBLE);
 		gameStop = false;
+		currentTime = 0;
+		currentStart = System.currentTimeMillis();
+		Log.w("time", String.valueOf(currentStart));
 	}
 	
 	protected void showSuccessView() {
 		gameStop = true;
+		clearProgress();
 		imageView1.setVisibility(View.VISIBLE);
 		button1.setVisibility(View.VISIBLE);
-		
+		textView2.setVisibility(View.VISIBLE);
+		currentTime += System.currentTimeMillis() - currentStart;
+		textView2.setText("Your score: " + currentTime / 1000 + " seconds!");
+				
 		/*Intent intent = new Intent(this, DisplayMessageActivity.class);
 		String message = "Bukkake Awarded";
 		intent.putExtra(EXTRA_MESSAGE, message);
 		startActivity(intent);*/
 	}
 	
+	protected void clearProgress() {
+		for(int i = 0; i < encourage.length; i++) encourage[i] = false;
+		progressBar1.setProgress(0);
+	}
+	
+	protected void playSound(int progress) {
+		String filename = "yes.mp3";
+		switch (progress) {
+			case PER25:
+				filename = "try.mp3";
+				break;
+			case PER75:
+				filename = "wand.mp3";
+				break;
+			case PER100:
+				filename = "yes.mp3";
+				break;
+		}
+		try {
+			AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+			audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 20, 0);
+			
+			AssetFileDescriptor afd = getAssets().openFd(filename);			
+			mp = new MediaPlayer();
+			mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(),
+					afd.getLength());
+			mp.setOnCompletionListener(new OnCompletionListener() {
+				@Override
+				public void onCompletion(MediaPlayer m) {
+					// TODO Auto-generated method stub
+					m.release();
+				}
+
+			});
+			mp.prepare();
+			mp.start();
+		} catch (Exception e) {
+			Log.w("Error", e.getMessage());
+		}
+	}
+	
     public void startNewGame(View view) {
 	    showNewGameView();
-    }
+    }    
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_main);
         
         initializeUIElements();
         showSuccessView();
         imageView1.setVisibility(View.INVISIBLE);
+        textView2.setVisibility(View.INVISIBLE);
         
         /* do this in onCreate */
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -107,17 +182,19 @@ public class MainActivity extends Activity {
     }
 
 	@Override
-	protected void onResume() {
+	protected void onResume() {		
 		super.onResume();
 		mSensorManager.registerListener(mSensorListener,
 				mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
 				SensorManager.SENSOR_DELAY_NORMAL);
+		currentStart = System.currentTimeMillis();		
 	}
 
 	@Override
 	protected void onPause() {
-		mSensorManager.unregisterListener(mSensorListener);
 		super.onPause();
+		mSensorManager.unregisterListener(mSensorListener);
+		currentTime += System.currentTimeMillis() - currentStart;		
 	}
 
     @Override
