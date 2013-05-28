@@ -12,6 +12,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -27,8 +28,11 @@ public class MainActivity extends Activity {
 	private final static int LEGIT_SHAKE = 2;
 	private final static float DIFFICULTY_FACTOR = 1.0f;
 	private final static int PER25 = 25;
+	private final static int PER50 = 50;
 	private final static int PER75 = 75;
 	private final static int PER100 = 100;
+	private final static int VIBRATE_ENCOURAGE = 100;
+	private final static int VIBRATE_FINISH = 100;
 	
 	private boolean encourage[] = new boolean[3];
 	
@@ -61,17 +65,29 @@ public class MainActivity extends Activity {
 	    	if(Math.abs(mAccel) > LEGIT_SHAKE && !gameStop)
 	    		progressBar1.setProgress(progressBar1.getProgress() + Math.round(Math.abs(mAccel) * DIFFICULTY_FACTOR));
 	    	
+	    	// Get instance of Vibrator from current Context
+	    	Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+	    	
 	    	if(!encourage[0] && progressBar1.getProgress() >= PER25) {
+	    		v.vibrate(VIBRATE_ENCOURAGE); 
 	    		playSound(PER25);
 	    		encourage[0] = true;
 	    	}
 	    	
+	    	if(progressBar1.getProgress() >= PER50) {
+	    		
+	    	}
+	    		
+	    	
 	    	if(!encourage[1] && progressBar1.getProgress() >= PER75) {
+	    		v.vibrate(VIBRATE_ENCOURAGE); 
 	    		playSound(PER75);
 	    		encourage[1] = true;
 	    	}
 	    	
 			if (!encourage[2] && progressBar1.getProgress() >= SUCCESS_CRITERION) {
+				v.vibrate(VIBRATE_FINISH); 
 				playSound(PER100);
 				encourage[2] = true;
 				showSuccessView();
