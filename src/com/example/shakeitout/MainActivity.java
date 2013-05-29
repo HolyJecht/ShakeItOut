@@ -31,8 +31,8 @@ public class MainActivity extends Activity {
 	private final static int PER50 = 50;
 	private final static int PER75 = 75;
 	private final static int PER100 = 100;
-	private final static int VIBRATE_ENCOURAGE = 100;
-	private final static int VIBRATE_FINISH = 100;
+	private final static int VIBRATE_ENCOURAGE = 500;
+	private final static int VIBRATE_FINISH = 1000;
 	
 	private boolean encourage[] = new boolean[3];
 	
