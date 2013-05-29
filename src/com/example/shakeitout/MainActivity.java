@@ -12,6 +12,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -29,6 +30,8 @@ public class MainActivity extends Activity {
 	private final static int PER25 = 25;
 	private final static int PER75 = 75;
 	private final static int PER100 = 100;
+	private final static int VIBRATE_ENCOURAGE = 100;
+	private final static int VIBRATE_FINISH = 100;
 	
 	private boolean encourage[] = new boolean[3];
 	
@@ -39,6 +42,7 @@ public class MainActivity extends Activity {
 	private Button button1;
 	private ImageView imageView1;
 	private MediaPlayer mp;
+	private Vibrator vb;
 	
 	/* put this into your activity class */
 	private SensorManager mSensorManager;
@@ -63,16 +67,19 @@ public class MainActivity extends Activity {
 	    	
 	    	if(!encourage[0] && progressBar1.getProgress() >= PER25) {
 	    		playSound(PER25);
+	    		vb.vibrate(VIBRATE_ENCOURAGE);
 	    		encourage[0] = true;
 	    	}
 	    	
 	    	if(!encourage[1] && progressBar1.getProgress() >= PER75) {
 	    		playSound(PER75);
+	    		vb.vibrate(VIBRATE_ENCOURAGE);
 	    		encourage[1] = true;
 	    	}
 	    	
 			if (!encourage[2] && progressBar1.getProgress() >= SUCCESS_CRITERION) {
 				playSound(PER100);
+				vb.vibrate(VIBRATE_FINISH); 
 				encourage[2] = true;
 				showSuccessView();
 			}
@@ -172,6 +179,9 @@ public class MainActivity extends Activity {
         showSuccessView();
         imageView1.setVisibility(View.INVISIBLE);
         textView2.setVisibility(View.INVISIBLE);
+        
+        // Get instance of Vibrator from current Context
+    	vb = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         
         /* do this in onCreate */
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
