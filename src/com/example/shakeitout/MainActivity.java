@@ -19,6 +19,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
@@ -43,6 +44,8 @@ public class MainActivity extends Activity {
 	private Button button1;
 	private ImageView imageView1;
 	private MediaPlayer mp;
+	private Vibrator vb;
+	private RelativeLayout layout;
 	
 	/* put this into your activity class */
 	private SensorManager mSensorManager;
@@ -104,7 +107,9 @@ public class MainActivity extends Activity {
         progressBar1 = (ProgressBar) findViewById(R.id.progressBar1);
         button1 = (Button) findViewById(R.id.button1);
         imageView1 = (ImageView) findViewById(R.id.test_image);
-        textView2 = (TextView) findViewById(R.id.textView2);
+        textView2 = (TextView) findViewById(R.id.textView2);        
+        layout = (RelativeLayout) findViewById(R.id.myLayout);
+        //layout = new RelativeLayout(this);
 	}
 	
 	protected void showNewGameView() {		
@@ -112,6 +117,7 @@ public class MainActivity extends Activity {
 		button1.setVisibility(View.INVISIBLE);
 		textView2.setText("");
 		textView2.setVisibility(View.INVISIBLE);
+		layout.setBackgroundResource(R.drawable.ketchup_bottle_2);
 		gameStop = false;
 		currentTime = 0;
 		currentStart = System.currentTimeMillis();
@@ -121,7 +127,8 @@ public class MainActivity extends Activity {
 	protected void showSuccessView() {
 		gameStop = true;
 		clearProgress();
-		imageView1.setVisibility(View.VISIBLE);
+		layout.setBackgroundResource(R.drawable.sad_face);
+		//imageView1.setVisibility(View.VISIBLE);
 		button1.setVisibility(View.VISIBLE);
 		textView2.setVisibility(View.VISIBLE);
 		currentTime += System.currentTimeMillis() - currentStart;
